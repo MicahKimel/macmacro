@@ -12,6 +12,7 @@
 
 BOOL shouldContinue = YES;
 NSString *outputPath = @"output.sh";
+NSString *currentDir = @"output.sh";
 NSArray *toRunPath = {};
 
 void runScript(void) {
@@ -35,7 +36,7 @@ void runScript(void) {
                     [task setLaunchPath:@"/bin/zsh"];
                     [task setArguments:@[@"-c", scriptPath]];
                     NSDictionary *environment = @{
-                        @"PATH": @"/opt/homebrew/opt/ruby/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/micahkimel/go/bin:/opt/homebrew/opt/go/libexec/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/local/share/dotnet:~/.dotnet/tools:/usr/local/go/bin:/Users/micahkimel/Library/Android/sdk/emulator:/Users/micahkimel/Library/Android/sdk/platform-tools:/usr/local/go/bin:/Users/micahkimel/Library/Android/sdk/emulator:/Users/micahkimel/Library/Android/sdk/platform-tools"
+                        @"PATH": @"/opt/homebrew/bin:/opt/homebrew/sbin:/Users/micahkimel/go/bin:/opt/homebrew/opt/go/libexec/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/usr/local/opt:/usr/local/bin"
                     };
                     [task setEnvironment:environment];
                     [task launch];
@@ -290,6 +291,8 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
             
         } else if (keyCode == 97){
             shouldContinue = NO;
+            NSLog(@"File Exported, thank you for using!");
+            abort();
         }
         else {
             NSString *formattedString = [NSString stringWithFormat:@"cliclick t:%s \n sleep 0.2\n", keyChar];
@@ -337,8 +340,12 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
         
         if (flag & kCGEventFlagMaskCommand){
             //cmd key pressed
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:cmd \n sleep 1.5\n"];
+            FileWrite(formattedString);
         } else if (kCGEventFlagMaskCommand){
             //cmd key up
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:cmd \n sleep 1.5\n"];
+            FileWrite(formattedString);
         }
         
         if (flag & kCGEventFlagMaskAlternate){
@@ -349,21 +356,49 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
         
         if (flag & kCGEventFlagMaskControl){
             //control key pressed
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:ctrl \n sleep 1.5\n"];
+            FileWrite(formattedString);
         } else if (kCGEventFlagMaskControl){
             //control key up
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:ctrl \n sleep 1.5\n"];
+            FileWrite(formattedString);
         }
         
         if (flag & kCGEventFlagMaskShift){
             //shift key pressed
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:shift \n sleep 1.5\n"];
+            FileWrite(formattedString);
         } else if (kCGEventFlagMaskShift){
             //shift key up
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:shift \n sleep 1.5\n"];
+            FileWrite(formattedString);
         }
     }
 
     return event;
 }
 
+void createFile(void){
+    @autoreleasepool {
+        // leave empty
+        NSString *textToWrite = @"";
+
+        // Create a file manager
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+
+        NSError *error = nil;
+        BOOL success = [fileManager createFileAtPath:outputPath contents:nil attributes:nil];
+
+        if (success) {
+            NSLog(@"File created successfully.");
+        } else {
+            NSLog(@"Error creating file: %@", error);
+        }
+    }
+}
+
 void start(void) {
+    createFile();
     while (shouldContinue) {
         NSLog(@"Start");
         CFMachPortRef eventTap = CGEventTapCreate(
@@ -395,14 +430,15 @@ void start(void) {
 void help(){
     NSString *help = @"macmacrocli tool used for recording\n"
     "mouse and text input and playing it back\n"
+    "cliclick is a required dependancy for this application\n"
     "\n"
     "USAGE:\n"
     "macmacro -o output.sh\n"
-    "\tThis command start recording and sets an output file\n"
+    "This command start recording and sets an output file\n"
     "\nf5 is used while running to make focused window fullscreen in order for clicks to always work \n"
     "\nf6 can used to stop recording\n"
     "\nmacmacro -r /path/script1.sh /path/script2.sh\n"
-    "\tThis command runs any scripts togeather to preform complex actions";
+    "This command runs any scripts togeather to preform complex actions";
     
     printf("%s", [help UTF8String]);
 }
@@ -415,11 +451,12 @@ int main(int argc, const char * argv[]){
                 help();
                 break;
             case 'o':
-                outputPath = [NSString stringWithUTF8String:optarg];
+                outputPath = [NSString stringWithFormat:@"%@%@%@", [[NSFileManager defaultManager] currentDirectoryPath], @"/", [NSString stringWithUTF8String:optarg]];
+                start();
                 break;
             case 'r':
                 //NSString *mypath = [NSString stringWithUTF8String:optarg];
-                toRunPath = [NSArray arrayWithObjects:[NSString stringWithUTF8String:optarg], nil];
+                toRunPath = [NSArray arrayWithObjects:[NSString stringWithFormat:@"%@%@%@", [[NSFileManager defaultManager] currentDirectoryPath], @"/", [NSString stringWithUTF8String:optarg]], nil];
                 runScript();
                 break;
             default:
