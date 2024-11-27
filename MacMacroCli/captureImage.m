@@ -18,11 +18,11 @@
 
 @implementation CaptureImage
 
-NSString *outputPath = @"output.sh";
+NSString *savePath = @"output.sh";
 
 - (void) captureScreenshotFromRect:(CGRect) rect toFilePath:(NSString*)output {
     //set output
-    outputPath = output;
+    savePath = output;
     // Request screen recording permission
     [SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent * _Nullable content, NSError * _Nullable error) {
         if (error) {
@@ -83,7 +83,7 @@ NSString *outputPath = @"output.sh";
 
     // Save the image to a file
     NSData *imageData = [image TIFFRepresentation];
-    NSString *path = [NSString stringWithFormat:@"%@%@", outputPath, @".tiff"];
+    NSString *path = [NSString stringWithFormat:@"%@%@", savePath, @".tiff"];
     [imageData writeToFile:path atomically:YES];
 }
 

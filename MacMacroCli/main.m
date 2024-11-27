@@ -300,7 +300,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
         // Convert keycode to character
         const char* keyChar = getKeyCodeString(keyCode);
         if (keyCode == 96) {
-            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:ctrl kd:cmd t:f ku:ctrl ku:cmd \n sleep 0.2\n"];
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:ctrl kd:cmd t:f ku:ctrl ku:cmd \n sleep 1.0\n"];
             FileWrite(formattedString);
             CFTypeRef fullScreenValue = kCFBooleanTrue;
             getFocusedWindow();
@@ -315,7 +315,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
             }
             shouldContinue = NO;
             NSLog(@"File Exported, thank you for using!");
-            abort();
+            //abort();
         }
         else {
             NSString *formattedString = [NSString stringWithFormat:@"cliclick t:%s \n sleep 0.2\n", keyChar];
