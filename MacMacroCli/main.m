@@ -9,6 +9,13 @@
 #include <Carbon/Carbon.h>
 #import <Cocoa/Cocoa.h>
 #import <Accessibility/Accessibility.h>
+#import "captureImage.h"
+
+@interface MyAppDelegate : NSObject <NSApplicationDelegate>
+
+@property (nonatomic, strong) CaptureImage *captureDelegate;
+
+@end
 
 BOOL shouldContinue = YES;
 NSString *outputPath = @"output.sh";
@@ -271,6 +278,15 @@ const char* getKeyCodeString(CGKeyCode keyCode) {
     return "";
 }
 
+void saveImage(NSImage* image) {
+    // Convert NSImage to PNG data
+    NSBitmapImageRep *imageRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
+    NSData *pngData = [imageRep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+    
+    // Write to file
+    [pngData writeToFile:outputPath atomically:YES];
+}
+
 CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
     NSLog(@"Event Callback");
     if (type == kCGEventKeyDown) {
@@ -290,6 +306,13 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
             getFocusedWindow();
             
         } else if (keyCode == 97){
+            // Capture two more inputs which are the pixel points in which to screenshot
+            // Screenshot will then be compared when running for confidence interval
+            @autoreleasepool {
+                CaptureImage *captureDelegate = [[CaptureImage alloc] init];
+                [captureDelegate captureScreenshotFromRect:NSMakeRect(100, 100, 500, 300) toFilePath:outputPath];
+                // ... other code
+            }
             shouldContinue = NO;
             NSLog(@"File Exported, thank you for using!");
             abort();
