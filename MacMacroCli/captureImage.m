@@ -14,6 +14,10 @@
 
 @property (nonatomic, strong) SCStream *stream;
 
+- (void)captureScreenshotFromRect:(CGRect) rect toFilePath:(NSString*)output ;
+
+- (void)stopCapture ;
+
 @end
 
 @implementation CaptureImage
@@ -53,18 +57,30 @@ NSString *savePath = @"output.sh";
         SCContentFilter *filter = [[SCContentFilter alloc] initWithDisplay: display includingWindows: includedWindows];
         
         // create stream
-        SCStream *stream = [[SCStream alloc] initWithFilter:filter configuration:configuration delegate:nil];
-        // Add a stream output
+        SCStream *stream = [[SCStream alloc] initWithFilter:filter configuration:configuration delegate:self];
+        
         NSError *addStreamError = nil;
-        CFRelease(windowList);
+        
+        [stream addStreamOutput:self type:SCStreamOutputTypeScreen sampleHandlerQueue:nil error:&addStreamError];
+        
+        NSLog(@"Attempted Creating Stream");
+        
+        if (addStreamError) {
+            NSLog(@"Error adding stream output: %@", addStreamError);
+        }
+        
     }];
 }
 
 - (void)stopCapture {
-    self.stream = nil;
+    if (self.stream) {
+        NSLog(@"Stream Stopped");
+        self.stream = nil;
+    }
 }
 
 - (void)stream:(SCStream *)stream didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer ofType:(SCStreamOutputType)type {
+    NSLog(@"OutPut Stream Called");
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
     CVPixelBufferLockBaseAddress(imageBuffer, 0);
     uint8_t *baseAddress = (uint8_t *)CVPixelBufferGetBaseAddress(imageBuffer);

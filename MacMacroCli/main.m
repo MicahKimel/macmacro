@@ -10,6 +10,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Accessibility/Accessibility.h>
 #import "captureImage.h"
+#import "MacMacroCli-Swift.h"
 
 @interface MyAppDelegate : NSObject <NSApplicationDelegate>
 
@@ -309,11 +310,15 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
             // Capture two more inputs which are the pixel points in which to screenshot
             // Screenshot will then be compared when running for confidence interval
             @autoreleasepool {
-                CaptureImage *captureDelegate = [[CaptureImage alloc] init];
-                [captureDelegate captureScreenshotFromRect:NSMakeRect(100, 100, 500, 300) toFilePath:outputPath];
+                UserDefaultFactory *udf = [[UserDefaultFactory alloc] init];
+                CGRect rect = CGRectMake(100, 100, 500, 500);
+                
+                [udf screenshotWithRect:rect toFilePath:outputPath completionHandler:^{
+                    NSLog(@"Screenshot saved successfully!");
+                }];
                 // ... other code
             }
-            shouldContinue = NO;
+//            shouldContinue = NO;
             NSLog(@"File Exported, thank you for using!");
             //abort();
         }
@@ -408,9 +413,20 @@ void createFile(void){
 
         // Create a file manager
         NSFileManager *fileManager = [NSFileManager defaultManager];
+        
+        NSString *Imagepath = [NSString stringWithFormat:@"%@%@", outputPath, @".png"];
 
         NSError *error = nil;
         BOOL success = [fileManager createFileAtPath:outputPath contents:nil attributes:nil];
+
+        if (success) {
+            NSLog(@"File created successfully.");
+        } else {
+            NSLog(@"Error creating file: %@", error);
+        }
+        
+        error = nil;
+        success = [fileManager createFileAtPath:Imagepath contents:nil attributes:nil];
 
         if (success) {
             NSLog(@"File created successfully.");
