@@ -19,6 +19,9 @@
 @end
 
 BOOL shouldContinue = YES;
+BOOL captureImage = NO;
+BOOL captureImagePartTwo = NO;
+CGRect imageRect = (CGRect){.size = 0};
 NSString *outputPath = @"output.sh";
 NSString *currentDir = @"output.sh";
 NSArray *toRunPath = {};
@@ -309,17 +312,11 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
         } else if (keyCode == 97){
             // Capture two more inputs which are the pixel points in which to screenshot
             // Screenshot will then be compared when running for confidence interval
-            @autoreleasepool {
-                UserDefaultFactory *udf = [[UserDefaultFactory alloc] init];
-                CGRect rect = CGRectMake(100, 100, 500, 500);
-                
-                [udf screenshotWithRect:rect toFilePath:outputPath completionHandler:^{
-                    NSLog(@"Screenshot saved successfully!");
-                }];
-                // ... other code
-            }
+            //@autoreleasepool {
+            captureImage = YES;
+            //}
 //            shouldContinue = NO;
-            NSLog(@"File Exported, thank you for using!");
+            //NSLog(@"File Exported, thank you for using!");
             //abort();
         }
         else {
@@ -332,12 +329,36 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
         //printf("pid: %i", findProcessByWindowTitle(title));a
     } else if (type == kCGEventLeftMouseUp) {
         NSLog(@"Click");
-        CGPoint point = CGEventGetLocation(event);
-        printf("Mouse up at: (%f, %f)\n", point.x, point.y);
-        int pointX = point.x;
-        int pointY = point.y;
-        NSString *formattedString = [NSString stringWithFormat:@" du:%i,%i \n sleep 1.5\n", pointX, pointY];
-        FileWrite(formattedString);
+        if (captureImage) {
+            CGPoint point = CGEventGetLocation(event);
+            printf("Mouse up at: (%f, %f)\n", point.x, point.y);
+            int pointX = point.x;
+            int pointY = point.y;
+            if (captureImagePartTwo) {
+                NSLog(@"Screenshot Set Width/Height!");
+                imageRect.size.width = point.x;
+                imageRect.size.height = point.y;
+                UserDefaultFactory *udf = [[UserDefaultFactory alloc] init];
+                [udf screenshotWithRect:imageRect toFilePath:outputPath completionHandler:^{
+                    NSLog(@"Screenshot saved successfully!");
+                    abort();
+                }];
+            }
+            captureImagePartTwo = YES;
+            
+            // Accessing the points
+            imageRect.origin.x = pointX;
+            imageRect.origin.y = pointY;
+            NSLog(@"Screenshot Set Origin Points!");
+            
+        } else {
+            CGPoint point = CGEventGetLocation(event);
+            printf("Mouse up at: (%f, %f)\n", point.x, point.y);
+            int pointX = point.x;
+            int pointY = point.y;
+            NSString *formattedString = [NSString stringWithFormat:@" du:%i,%i \n sleep 1.5\n", pointX, pointY];
+            FileWrite(formattedString);
+        }
 //        AXUIElementRef focusedWindow = getFocusedWindow();
 //        if (focusedWindow) {
 //            // Use the focused window
