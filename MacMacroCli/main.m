@@ -85,14 +85,38 @@ void compareImageSubMethod(void){
 }
 
 void compareImageOutputs(void){
-    @autoreleasepool {
-        NSLog(@"Compare Outputs Called!");
-        NSString *Imagepath = [NSString stringWithFormat:@"%@%@", outputPath, @"two"];
-        UserDefaultFactory *udf = [[UserDefaultFactory alloc] init];
-        [udf screenshotWithRect:imageRect toFilePath:Imagepath completionHandler:^{
-            NSLog(@"Screenshot saved successfully!");
-            compareImageSubMethod();
-        }];
+    NSLog(@"Compare Outputs Called!");
+    NSString *ImagepathTwo = [NSString stringWithFormat:@"%@%@", outputPath, @"two"];
+    NSError *error;
+    NSString *fileContent = [NSString stringWithContentsOfFile:outputPath encoding:NSUTF8StringEncoding error:&error];
+    if (error){
+        NSLog(@"failed to read file");
+        shouldContinue = NO;
+        return;
+    }
+    NSArray *components = [fileContent componentsSeparatedByString:@","];
+    
+    NSRange range = NSMakeRange([components count] - 4, 4);
+    NSArray *lastFour = [components subarrayWithRange:range];
+    
+    
+    imageRect.origin.x = [lastFour[0] floatValue];
+    imageRect.origin.y = [lastFour[1] floatValue];
+    imageRect.size.width = [lastFour[2] floatValue];
+    imageRect.size.height = [lastFour[3] floatValue];
+    UserDefaultFactory *udf = [[UserDefaultFactory alloc] init];
+    NSLog(@"calling screenshot %@", ImagepathTwo);
+    [udf screenshotWithRect:imageRect toFilePath:ImagepathTwo completionHandler:^{
+        NSLog(@"Screenshot saved successfully!");
+        compareImageSubMethod();
+        
+        CFRelease(CFBridgingRetain(udf));
+        shouldContinue = NO;
+    }];
+    NSLog(@"over?");
+    
+    while (shouldContinue) {
+       // NSLog(@"wait");
     }
 }
 
@@ -167,8 +191,6 @@ void runScript(void) {
                     
                     // Wait for the task to finish (optional)
                     [task waitUntilExit];
-                    // Then compare outputs
-                    compareImageOutputs();
                 } else {
                     NSLog(@"Error setting file permissions: %@", error);
                 }
@@ -177,6 +199,9 @@ void runScript(void) {
             }
         }
     }
+        
+    // Then compare outputs
+    compareImageOutputs();
 }
 
 void listAllWindowPIDs(void) {
@@ -463,8 +488,23 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
             int pointY = point.y;
             if (captureImagePartTwo) {
                 NSLog(@"Screenshot Set Width/Height!");
-                imageRect.size.width = point.x;
-                imageRect.size.height = point.y;
+                NSString *ImagepathTwo = [NSString stringWithFormat:@"%@%@", outputPath, @"two"];
+                NSError *error;
+                NSString *fileContent = [NSString stringWithContentsOfFile:outputPath encoding:NSUTF8StringEncoding error:&error];
+                if (error){
+                    NSLog(@"failed to read file");
+                    shouldContinue = NO;
+                }
+                NSArray *components = [fileContent componentsSeparatedByString:@","];
+                
+                NSRange range = NSMakeRange([components count] - 4, 4);
+                NSArray *lastFour = [components subarrayWithRange:range];
+                
+                
+                imageRect.origin.x = [lastFour[0] floatValue];
+                imageRect.origin.y = [lastFour[1] floatValue];
+                imageRect.size.width = [lastFour[2] floatValue];
+                imageRect.size.height = [lastFour[3] floatValue];
                 UserDefaultFactory *udf = [[UserDefaultFactory alloc] init];
                 [udf screenshotWithRect:imageRect toFilePath:outputPath completionHandler:^{
                     NSLog(@"Screenshot saved successfully!");
@@ -509,7 +549,7 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
             printf("Mouse down at: (%f, %f)\n", point.x, point.y);
             int pointX = point.x;
             int pointY = point.y;
-            NSString *formattedString = [NSString stringWithFormat:@"\n #cliclick dd:%i,%i ", pointX, pointY];
+            NSString *formattedString = [NSString stringWithFormat:@"\n ,%i,%i", pointX, pointY];
             FileWrite(formattedString);
         }
     } else if (type == kCGEventRightMouseDown) {
@@ -663,7 +703,7 @@ int main(int argc, const char * argv[]){
                 start();
                 break;
             case 'r':
-                //NSString *mypath = [NSString stringWithUTF8String:optarg];
+                outputPath = [NSString stringWithFormat:@"%@%@%@", [[NSFileManager defaultManager] currentDirectoryPath], @"/", [NSString stringWithUTF8String:optarg]];
                 toRunPath = [NSArray arrayWithObjects:[NSString stringWithFormat:@"%@%@%@", [[NSFileManager defaultManager] currentDirectoryPath], @"/", [NSString stringWithUTF8String:optarg]], nil];
                 runScript();
                 break;

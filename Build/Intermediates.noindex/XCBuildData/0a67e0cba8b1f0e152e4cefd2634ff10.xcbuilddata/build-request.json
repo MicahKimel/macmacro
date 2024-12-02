@@ -9,33 +9,34 @@
       "guid" : "dbd1b0d2ccc8aadd0c9ae5729edaee58412f30d2b11ae8dc1c0f4070057665fa"
     }
   ],
-  "containerPath" : "/Users/micahkimel/Desktop/macmacro/MacMacroCli.xcodeproj",
+  "containerPath" : "/Users/micahkimel/Desktop/MacMacroCli/MacMacroCli/MacMacroCli.xcodeproj",
   "continueBuildingAfterErrors" : false,
   "dependencyScope" : "workspace",
   "enableIndexBuildArena" : false,
   "hideShellScriptEnvironment" : false,
   "parameters" : {
     "action" : "build",
-    "activeArchitecture" : "x86_64",
+    "activeArchitecture" : "arm64",
     "activeRunDestination" : {
       "disableOnlyActiveArch" : false,
       "platform" : "macosx",
       "sdk" : "macosx15.1",
       "sdkVariant" : "macos",
       "supportedArchitectures" : [
-        "x86_64h",
+        "arm64e",
+        "arm64",
         "x86_64"
       ],
-      "targetArchitecture" : "x86_64"
+      "targetArchitecture" : "arm64"
     },
     "arenaInfo" : {
-      "buildIntermediatesPath" : "/Users/micahkimel/Desktop/macmacro/Build/Intermediates.noindex",
-      "buildProductsPath" : "/Users/micahkimel/Desktop/macmacro/Build/Products",
+      "buildIntermediatesPath" : "/Users/micahkimel/Desktop/MacMacroCli/MacMacroCli/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/micahkimel/Desktop/MacMacroCli/MacMacroCli/Build/Products",
       "derivedDataPath" : "/Users/micahkimel/Library/Developer/Xcode/DerivedData",
-      "indexDataStoreFolderPath" : "/Users/micahkimel/Library/Developer/Xcode/DerivedData/MacMacroCli-djxzlvflmzvyckbrrlhnccgcxlpf/Index.noindex/DataStore",
+      "indexDataStoreFolderPath" : "/Users/micahkimel/Library/Developer/Xcode/DerivedData/MacMacroCli-byzqbibgibigbueuvexfeqolpvvn/Index.noindex/DataStore",
       "indexEnableDataStore" : true,
-      "indexPCHPath" : "/Users/micahkimel/Library/Developer/Xcode/DerivedData/MacMacroCli-djxzlvflmzvyckbrrlhnccgcxlpf/Index.noindex/PrecompiledHeaders",
-      "pchPath" : "/Users/micahkimel/Desktop/macmacro/Build/Intermediates.noindex/PrecompiledHeaders"
+      "indexPCHPath" : "/Users/micahkimel/Library/Developer/Xcode/DerivedData/MacMacroCli-byzqbibgibigbueuvexfeqolpvvn/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Users/micahkimel/Desktop/MacMacroCli/MacMacroCli/Build/Intermediates.noindex/PrecompiledHeaders"
     },
     "configurationName" : "Debug",
     "overrides" : {
@@ -50,6 +51,7 @@
       }
     }
   },
+  "qos" : "default",
   "schemeCommand" : "launch",
   "showNonLoggedProgress" : true,
   "useDryRun" : false,
