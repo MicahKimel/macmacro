@@ -84,6 +84,12 @@ extension NSImage {
     ///   - y2: Ending y-coordinate
     /// - Returns: Cropped NSImage or nil if cropping fails
     func crop(cropRect: CGRect) -> NSImage? {
+        // Double CGRect to match full screen
+        let newWidth = cropRect.width
+        let newHeight = cropRect.height
+        let newOriginX = cropRect.origin.x
+        let newOriginY = cropRect.origin.y
+        let rect = CGRect(x: newOriginX, y: newOriginY, width: newWidth, height: newHeight)
         // Ensure we have a valid bitmap representation
         guard let tiffRepresentation = self.tiffRepresentation,
               let bitmapImage = NSBitmapImageRep(data: tiffRepresentation) else {
@@ -95,7 +101,7 @@ extension NSImage {
         let imageHeight = CGFloat(bitmapImage.pixelsHigh)
         
         // Clip the crop rect to image bounds
-        let clippedCropRect = cropRect.intersection(CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight))
+        let clippedCropRect = rect.intersection(CGRect(x: 0, y: 0, width: imageWidth, height: imageHeight))
         
         // Create a new bitmap representation for the cropped image
         guard let cgImage = bitmapImage.cgImage?.cropping(to: clippedCropRect) else {

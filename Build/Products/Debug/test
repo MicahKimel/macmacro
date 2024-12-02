@@ -1,0 +1,15 @@
+cliclick ku:cmd 
+ sleep 0.2
+cliclick ku:ctrl 
+ sleep 0.2
+cliclick ku:shift 
+ sleep 0.2
+cliclick ku:cmd 
+ sleep 0.2
+cliclick ku:ctrl 
+ sleep 0.2
+cliclick ku:shift 
+ sleep 0.2
+
+ #cliclick dd:476,674 
+ #cliclick dd:976,392 

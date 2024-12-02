@@ -11,6 +11,12 @@
 #import <Accessibility/Accessibility.h>
 #import "captureImage.h"
 #import "MacMacroCli-Swift.h"
+#import <CoreGraphics/CoreGraphics.h>
+#import <ImageIO/ImageIO.h>
+
+double compareImages(CGImageRef image1, CGImageRef image2, CGSize targetSize);
+CGImageRef resizeImage(CGImageRef image, CGSize targetSize);
+double similarity = 0.0;
 
 @interface MyAppDelegate : NSObject <NSApplicationDelegate>
 
@@ -26,10 +32,117 @@ NSString *outputPath = @"output.sh";
 NSString *currentDir = @"output.sh";
 NSArray *toRunPath = {};
 
+
+void compareImageSubMethod(void){
+    
+    NSString *Imagepath1 = [NSString stringWithFormat:@"%@%@", outputPath, @"two.png"];
+    NSString *Imagepath2 = [NSString stringWithFormat:@"%@%@", outputPath, @".png"];
+
+    // Read Base64 strings from files
+    NSString *base64Image1 = [NSString stringWithContentsOfFile:Imagepath1 encoding:NSUTF8StringEncoding error:nil];
+    NSString *base64Image2 = [NSString stringWithContentsOfFile:Imagepath2 encoding:NSUTF8StringEncoding error:nil];
+
+    if (!base64Image1 || !base64Image2) {
+        NSLog(@"Failed to read Base64 images from files.");
+        return;
+    }
+
+    // Decode Base64 strings
+    NSData *imageData1 = [[NSData alloc] initWithBase64EncodedString:base64Image1 options:0];
+    NSData *imageData2 = [[NSData alloc] initWithBase64EncodedString:base64Image2 options:0];
+
+    if (!imageData1 || !imageData2) {
+        NSLog(@"Failed to decode Base64 strings.");
+        return;
+    }
+
+    // Create CGImage from NSData
+    CGImageSourceRef source1 = CGImageSourceCreateWithData((__bridge CFDataRef)imageData1, NULL);
+    CGImageSourceRef source2 = CGImageSourceCreateWithData((__bridge CFDataRef)imageData2, NULL);
+    CGImageRef image1 = CGImageSourceCreateImageAtIndex(source1, 0, NULL);
+    CGImageRef image2 = CGImageSourceCreateImageAtIndex(source2, 0, NULL);
+
+    if (!image1 || !image2) {
+        NSLog(@"Failed to create CGImage objects.");
+        if (source1) CFRelease(source1);
+        if (source2) CFRelease(source2);
+        return;
+    }
+
+    // Compare images
+    CGSize targetSize = CGSizeMake(100, 100); // Resize to standard resolution
+    similarity = compareImages(image1, image2, targetSize);
+
+    NSLog(@"The images are %.2f%% similar.", similarity);
+
+    // Clean up
+    CFRelease(image1);
+    CFRelease(image2);
+    CFRelease(source1);
+    CFRelease(source2);
+
+    return;
+}
+
+void compareImageOutputs(void){
+    @autoreleasepool {
+        NSLog(@"Compare Outputs Called!");
+        NSString *Imagepath = [NSString stringWithFormat:@"%@%@", outputPath, @"two"];
+        UserDefaultFactory *udf = [[UserDefaultFactory alloc] init];
+        [udf screenshotWithRect:imageRect toFilePath:Imagepath completionHandler:^{
+            NSLog(@"Screenshot saved successfully!");
+            compareImageSubMethod();
+        }];
+    }
+}
+
+
+// Function to compare two CGImages and calculate similarity percentage
+double compareImages(CGImageRef image1, CGImageRef image2, CGSize targetSize) {
+
+    CFDataRef data1 = CGDataProviderCopyData(CGImageGetDataProvider(image1));
+    CFDataRef data2 = CGDataProviderCopyData(CGImageGetDataProvider(image2));
+
+    const UInt8 *pixels1 = CFDataGetBytePtr(data1);
+    const UInt8 *pixels2 = CFDataGetBytePtr(data2);
+
+    NSUInteger length = CFDataGetLength(data1);
+    NSUInteger similarPixelCount = 0;
+
+    for (NSUInteger i = 0; i < length; i++) {
+        if (pixels1[i] == pixels2[i]) {
+            similarPixelCount++;
+        }
+    }
+
+    CFRelease(data1);
+    CFRelease(data2);
+
+    double similarity = ((double)similarPixelCount / (double)length) * 100.0;
+    return similarity;
+}
+
+// Function to resize a CGImage to a target size
+CGImageRef resizeImage(CGImageRef image, CGSize targetSize) {
+    size_t width = (size_t)targetSize.width;
+    size_t height = (size_t)targetSize.height;
+
+    CGContextRef context = CGBitmapContextCreate(NULL, width, height, 8, width * 4, CGColorSpaceCreateDeviceRGB(), kCGImageAlphaPremultipliedLast);
+
+    if (!context) {
+        return NULL;
+    }
+
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
+    CGImageRef resizedImage = CGBitmapContextCreateImage(context);
+
+    CGContextRelease(context);
+    return resizedImage;
+}
+
 void runScript(void) {
     @autoreleasepool {
         // Path to your script file
-        //NSString *scriptPath = @"/Users/micahkimel/Library/Containers/micahkimel.MacMacros/Data/test9.sh";
         for (id item in toRunPath){
             if ([item isKindOfClass:[NSString class]]){
                 NSString *scriptPath = (NSString *)item;
@@ -54,6 +167,8 @@ void runScript(void) {
                     
                     // Wait for the task to finish (optional)
                     [task waitUntilExit];
+                    // Then compare outputs
+                    compareImageOutputs();
                 } else {
                     NSLog(@"Error setting file permissions: %@", error);
                 }
@@ -382,12 +497,21 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
 //            NSLog(@"No focused window found");
 //        }
     } else if (type == kCGEventLeftMouseDown) {
-        CGPoint point = CGEventGetLocation(event);
-        printf("Mouse down at: (%f, %f)\n", point.x, point.y);
-        int pointX = point.x;
-        int pointY = point.y;
-        NSString *formattedString = [NSString stringWithFormat:@"cliclick dd:%i,%i", pointX, pointY];
-        FileWrite(formattedString);
+        if (!captureImage) {
+            CGPoint point = CGEventGetLocation(event);
+            printf("Mouse down at: (%f, %f)\n", point.x, point.y);
+            int pointX = point.x;
+            int pointY = point.y;
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick dd:%i,%i ", pointX, pointY];
+            FileWrite(formattedString);
+        } else {
+            CGPoint point = CGEventGetLocation(event);
+            printf("Mouse down at: (%f, %f)\n", point.x, point.y);
+            int pointX = point.x;
+            int pointY = point.y;
+            NSString *formattedString = [NSString stringWithFormat:@"\n #cliclick dd:%i,%i ", pointX, pointY];
+            FileWrite(formattedString);
+        }
     } else if (type == kCGEventRightMouseDown) {
         CGPoint point = CGEventGetLocation(event);
         printf("Right Mouse down at: (%f, %f)\n", point.x, point.y);
@@ -448,6 +572,7 @@ void createFile(void){
         NSFileManager *fileManager = [NSFileManager defaultManager];
         
         NSString *Imagepath = [NSString stringWithFormat:@"%@%@", outputPath, @".png"];
+        NSString *Imagepath2 = [NSString stringWithFormat:@"%@%@", outputPath, @"two.png"];
 
         NSError *error = nil;
         BOOL success = [fileManager createFileAtPath:outputPath contents:nil attributes:nil];
@@ -460,6 +585,15 @@ void createFile(void){
         
         error = nil;
         success = [fileManager createFileAtPath:Imagepath contents:nil attributes:nil];
+
+        if (success) {
+            NSLog(@"File created successfully.");
+        } else {
+            NSLog(@"Error creating file: %@", error);
+        }
+        
+        error = nil;
+        success = [fileManager createFileAtPath:Imagepath2 contents:nil attributes:nil];
 
         if (success) {
             NSLog(@"File created successfully.");
@@ -506,11 +640,13 @@ void help(){
     "\n"
     "USAGE:\n"
     "macmacro -o output.sh\n"
-    "This command start recording and sets an output file\n"
-    "\nf5 is used while running to make focused window fullscreen in order for clicks to always work \n"
-    "\nf6 can used to stop recording\n"
+    "This command start recording and sets an output file\n\n"
+    "\nf5\n is used while running to make focused window fullscreen in order for clicks to always work \n\n"
+    "\nf6\n can used to stop recording\n\n"
+    "\nf7\n can used to capture image\n\n"
+    "\nf8\n can used to switch application\n\n"
     "\nmacmacro -r /path/script1.sh /path/script2.sh\n"
-    "This command runs any scripts togeather to preform complex actions";
+    "This command runs any scripts togeather to preform complex actions\n\n";
     
     printf("%s", [help UTF8String]);
 }
