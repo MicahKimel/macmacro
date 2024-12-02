@@ -1,3 +1,19 @@
+cliclick dd:205,700  du:205,700 
+ sleep 1.5
+cliclick ku:cmd 
+ sleep 0.2
+cliclick ku:ctrl 
+ sleep 0.2
+cliclick ku:shift 
+ sleep 0.2
+cliclick ku:cmd 
+ sleep 0.2
+cliclick ku:ctrl 
+ sleep 0.2
+cliclick ku:shift 
+ sleep 0.2
+cliclick t: 
+ sleep 0.2
 cliclick ku:cmd 
  sleep 0.2
 cliclick ku:ctrl 
@@ -11,5 +27,5 @@ cliclick ku:ctrl
 cliclick ku:shift 
  sleep 0.2
 
- #cliclick dd:476,674 
- #cliclick dd:976,392 
+ ,460,579
+ ,1022,213
