@@ -674,13 +674,15 @@ void start(void) {
 
 
 void help(){
-    NSString *help = @"macmacrocli tool used for recording\n"
+    NSString *help =
+    @"---------------------------------------------------------\n"
+    "macmacrocli tool used for recording\n"
     "mouse and text input and playing it back\n"
     "cliclick is a required dependancy for this application\n"
-    "\n"
-    "USAGE:\n"
+    "---------------------------------------------------------\n"
+    "COMMANDS:\n\n"
     "macmacro -o output.sh\n"
-    "This command start recording and sets an output file\n\n"
+    "This command start recording and sets an output file\n"
     "\nf5\n is used while running to make focused window fullscreen in order for clicks to always work \n\n"
     "\nf6\n can used to stop recording\n\n"
     "\nf7\n can used to capture image\n\n"
