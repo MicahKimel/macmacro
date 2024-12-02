@@ -309,6 +309,14 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
             CFTypeRef fullScreenValue = kCFBooleanTrue;
             getFocusedWindow();
             
+        } else if (keyCode == 98) {
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:cmd kd:shift t:4 \n sleep 1.0\n"];
+            FileWrite(formattedString);
+            
+        } else if (keyCode == 100) {
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:cmd kp:space \n sleep 1.0\n"];
+            FileWrite(formattedString);
+            
         } else if (keyCode == 97){
             // Capture two more inputs which are the pixel points in which to screenshot
             // Screenshot will then be compared when running for confidence interval
@@ -318,6 +326,10 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
 //            shouldContinue = NO;
             //NSLog(@"File Exported, thank you for using!");
             //abort();
+        } else if (keyCode == 49) {
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kp:space \n sleep 1.0\n"];
+            FileWrite(formattedString);
+            
         }
         else {
             NSString *formattedString = [NSString stringWithFormat:@"cliclick t:%s \n sleep 0.2\n", keyChar];
@@ -389,11 +401,11 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
         
         if (flag & kCGEventFlagMaskCommand){
             //cmd key pressed
-            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:cmd \n sleep 1.5\n"];
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:cmd \n sleep 0.2\n"];
             FileWrite(formattedString);
         } else if (kCGEventFlagMaskCommand){
             //cmd key up
-            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:cmd \n sleep 1.5\n"];
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:cmd \n sleep 0.2\n"];
             FileWrite(formattedString);
         }
         
@@ -405,21 +417,21 @@ CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef
         
         if (flag & kCGEventFlagMaskControl){
             //control key pressed
-            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:ctrl \n sleep 1.5\n"];
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:ctrl \n sleep 0.2\n"];
             FileWrite(formattedString);
         } else if (kCGEventFlagMaskControl){
             //control key up
-            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:ctrl \n sleep 1.5\n"];
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:ctrl \n sleep 0.2\n"];
             FileWrite(formattedString);
         }
         
         if (flag & kCGEventFlagMaskShift){
             //shift key pressed
-            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:shift \n sleep 1.5\n"];
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick kd:shift \n sleep 0.2\n"];
             FileWrite(formattedString);
         } else if (kCGEventFlagMaskShift){
             //shift key up
-            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:shift \n sleep 1.5\n"];
+            NSString *formattedString = [NSString stringWithFormat:@"cliclick ku:shift \n sleep 0.2\n"];
             FileWrite(formattedString);
         }
     }
