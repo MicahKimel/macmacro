@@ -13,6 +13,7 @@
 #import "MacMacroCli-Swift.h"
 #import <CoreGraphics/CoreGraphics.h>
 #import <ImageIO/ImageIO.h>
+#import <Foundation/Foundation.h>
 
 double compareImages(CGImageRef image1, CGImageRef image2, CGSize targetSize);
 CGImageRef resizeImage(CGImageRef image, CGSize targetSize);
@@ -31,6 +32,90 @@ CGRect imageRect = (CGRect){.size = 0};
 NSString *outputPath = @"output.sh";
 NSString *currentDir = @"output.sh";
 NSArray *toRunPath = {};
+
+void sendOpenAIRequestWithBase64(void) {
+    NSLog(@"Get Image");
+    NSString *base64Image = [NSString stringWithContentsOfFile:outputPath encoding:NSUTF8StringEncoding error:nil];
+    NSString *formattedString = [NSString stringWithFormat:@"data:image/jpeg;base64,%@", base64Image];
+
+    // OpenAI API endpoint
+    NSString *apiURL = @"https://api.openai.com/v1/chat/completions";
+
+    // Your OpenAI API key
+    NSString *apiKey = @"";
+
+    // Prepare the request payload
+    NSDictionary *payload = @{
+        @"model": @"gpt-4o",
+        @"messages": @[
+            @{
+                @"role": @"tool",
+                @"content": @[
+                    @{@"type": @"text", @"text": @"What inputs are in the image and what is the corresponding x,y pixel location inside the image"},
+                    @{
+                        @"type": @"image_url",
+                        @"image_url": @{@"url":formattedString,@"detail": @"high"}
+                    }
+                ]
+            }
+        ],
+        @"max_tokens": @10000
+    };
+    NSLog(@"Payload Image");
+
+    // Serialize payload to JSON
+    NSError *jsonError = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:payload options:0 error:&jsonError];
+
+    if (jsonError) {
+        NSLog(@"Failed to serialize JSON: %@", jsonError);
+        return;
+    }
+    
+    NSLog(@"Post Image");
+    // Prepare the request
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:apiURL]];
+    [request setHTTPMethod:@"POST"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    [request setValue:[NSString stringWithFormat:@"Bearer %@", apiKey] forHTTPHeaderField:@"Authorization"];
+    [request setHTTPBody:jsonData];
+
+    // Create a URL session
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request
+                                                completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (error) {
+            NSLog(@"Request error: %@", error);
+            return;
+        }
+
+        // Parse the response
+        NSError *parseError = nil;
+        NSDictionary *responseDict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&parseError];
+
+        if (parseError) {
+            NSLog(@"Failed to parse response JSON: %@", parseError);
+            return;
+        }
+        NSLog(@"OpenAI Response: %@", responseDict);
+
+        // Access the response content
+        NSDictionary *choices = [responseDict[@"choices"] firstObject];
+        NSLog(@"OpenAI Response: %@", choices);
+        NSString *responseText = choices[@"message"][@"content"];
+        NSLog(@"OpenAI Response: %@", responseText);
+        
+        shouldContinue = NO;
+    }];
+
+    // Start the request
+    [dataTask resume];
+    
+    while (shouldContinue) {
+       // NSLog(@"wait");
+    }
+}
+
 
 
 void compareImageSubMethod(void){
@@ -695,7 +780,7 @@ void help(){
 
 int main(int argc, const char * argv[]){
     int optchar;
-    while ((optchar = getopt(argc, (char * const *)argv, "ho:r:")) != 1){
+    while ((optchar = getopt(argc, (char * const *)argv, "ho:r:i:")) != 1){
         switch (optchar){
             case 'h':
                 help();
@@ -709,6 +794,10 @@ int main(int argc, const char * argv[]){
                 toRunPath = [NSArray arrayWithObjects:[NSString stringWithFormat:@"%@%@%@", [[NSFileManager defaultManager] currentDirectoryPath], @"/", [NSString stringWithUTF8String:optarg]], nil];
                 runScript();
                 break;
+            case 'i':
+                NSLog(@"test");
+                outputPath = [NSString stringWithFormat:@"%@%@%@", [[NSFileManager defaultManager] currentDirectoryPath], @"/", [NSString stringWithUTF8String:optarg]];
+                sendOpenAIRequestWithBase64();
             default:
                 abort();
         }
