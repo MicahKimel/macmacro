@@ -33,10 +33,22 @@ NSString *outputPath = @"output.sh";
 NSString *currentDir = @"output.sh";
 NSArray *toRunPath = {};
 
+double scaleIntValue(int originalValue, NSRange originalRange, NSRange newRange) {
+    double scaledValue = ((double)(originalValue - originalRange.location) / (double)(originalRange.length)) * (double)(newRange.length) + (double)(newRange.location);
+    return scaledValue;
+}
+
 void sendOpenAIRequestWithBase64(void) {
     NSLog(@"Get Image");
     NSString *base64Image = [NSString stringWithContentsOfFile:outputPath encoding:NSUTF8StringEncoding error:nil];
     NSString *formattedString = [NSString stringWithFormat:@"data:image/jpeg;base64,%@", base64Image];
+    
+    // AI Calculation is normalized
+    NSRange originalRange = NSMakeRange(0, 1000);
+    
+    // Convert back to screen size
+    NSRange newWidthRange = NSMakeRange(0, 1920);
+    NSRange newHeightRange = NSMakeRange(0, 1080);
 
     // OpenAI API endpoint
     NSString *apiURL = @"https://api.openai.com/v1/chat/completions";
